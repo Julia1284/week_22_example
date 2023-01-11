@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-const String apiKey = '7279a320eab944b8aff178700a97ba02';
+import 'package:week_22_example/home_store.dart';
+import 'package:week_22_example/recipe.dart';
+import 'package:week_22_example/recipe_card.dart';
+import 'package:week_22_example/recipe_service.dart';
 
 class RecipesScreen extends StatefulWidget {
   const RecipesScreen({Key? key}) : super(key: key);
@@ -12,38 +15,28 @@ class RecipesScreen extends StatefulWidget {
 }
 
 class _RecipesScreenState extends State<RecipesScreen> {
-  var data = <String>[];
+  final _viewModel = HomeStore();
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _viewModel.fetchData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recipes'),
-      ),
-      body: ListView.builder(
-        itemBuilder: (_, i) => Image.network(data[i]),
-        itemCount: data.length,
-      ),
-    );
-  }
-
-  Future<void> _fetchData() async {
-    const url =
-        'https://api.spoonacular.com/recipes/complexSearch?apiKey=$apiKey';
-    final request = Uri.parse(url);
-    var response = await http.get(request);
-    print('Hello');
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-    final result = jsonDecode(response.body)['results'] as List<dynamic>;
-    setState(() {
-      data = result.map((e) => e['image'].toString()).toList();
-    });
+        appBar: AppBar(
+          title: const Text('Recipes'),
+        ),
+        body: Observer(builder: (_) {
+          final data = _viewModel.value;
+          return ListView.builder(
+            itemBuilder: (_, i) => RecipeCard(
+              recipe: data[i],
+            ),
+            itemCount: data.length,
+          );
+        }));
   }
 }
